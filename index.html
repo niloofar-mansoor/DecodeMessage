@@ -1,178 +1,193 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Alphabet Puzzle</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Alphabet Puzzle (responsive)</title>
 <style>
-body { font-family: Arial, sans-serif; padding: 20px; }
-table { border-collapse: collapse; width: 100%; text-align: center; font-size: 14px; margin-bottom: 10px; }
-th, td { border: 1px solid #aaa; padding: 6px; width: 30px; }
-th { background-color: #f4f4f4; }
-input { width: 90%; box-sizing: border-box; text-align: center; border: 1px solid #ccc; border-radius: 4px; padding: 3px; }
-.pre-filled { background-color: #e0e0e0; font-weight: bold; }
-#outputContainer { margin-top: 10px; }
-.outputRow { margin-bottom: 20px; }
-.outputCell { display: inline-block; width: 20px; text-align: center; position: relative; }
-.outputLetter { position: absolute; top: 0; left: 0; width: 100%; }
-.outputNumber { position: absolute; bottom: 0; left: 0; width: 100%; font-size: 12px; color: #555; }
-button { margin-top: 15px; padding: 6px 12px; border: none; background-color: #2d89ef; color: white; border-radius: 4px; cursor: pointer; }
-button:hover { background-color: #1b5fab; }
-@media(max-width: 600px) {
-  .half-table { display: inline-block; vertical-align: top; }
-}
+  :root{
+    --gap: 26px;
+  }
+  body { font-family: Arial, sans-serif; padding: 16px; margin:0; background:#fff; color:#111; }
+  .container { max-width: 980px; margin: 0 auto; padding: 12px; }
+  h2 { margin: 0 0 8px 0; font-size: 20px; }
+  p { margin: 6px 0 14px 0; color:#333; }
+
+  .top-tables {
+    display:flex;
+    gap:12px;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    flex-wrap:wrap;
+  }
+  .table-wrap { flex:1 1 48%; min-width:240px; }
+
+  table { border-collapse: collapse; width: 100%; text-align: center; font-size: 14px; table-layout: fixed; }
+  th, td { border: 1px solid #bbb; padding: 6px; width: 28px; box-sizing: border-box; }
+  th { background:#f4f4f4; font-weight:600; font-size:13px; }
+  input { width: 100%; box-sizing: border-box; text-align:center; padding:4px 2px; border-radius:4px; border:1px solid #ccc; font-size:13px; }
+  .pre-filled { background:#eee; font-weight:700; color:#000; }
+
+  #outputContainer { margin-top: 18px; display:flex; flex-direction:column; gap:22px; align-items:center; }
+  .outputRow { display:flex; flex-wrap:wrap; justify-content:center; gap:6px 6px; }
+  .outputCell { width:26px; height:34px; position:relative; display:inline-block; text-align:center; }
+  .outputLetter { position:absolute; top:0; left:0; width:100%; height:50%; line-height:18px; font-size:14px; font-weight:600; }
+  .outputNumber { position:absolute; bottom:0; left:0; width:100%; height:50%; line-height:14px; font-size:12px; color:#555; }
+  .spacer { height:var(--gap); }
+
+  .controls { margin-top:10px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  button { padding:7px 12px; border: none; border-radius:6px; background:#2d89ef; color:white; cursor:pointer; font-size:14px; }
+  button:hover { background:#1b5fab; }
+  #saveMessage { color:green; margin-left:8px; font-size:13px; }
+
+  @media (max-width:700px){
+    .table-wrap { flex-basis:100%; }
+    th, td { padding:6px 3px; width:24px; }
+    .outputCell { width:22px; height:36px; }
+    .outputLetter { font-size:13px; line-height:17px; }
+    .outputNumber { font-size:11px; line-height:15px; }
+    :root{ --gap: 30px; }
+  }
+
+  @media (max-width:420px){
+    th, td { padding:4px; width:20px; }
+    .outputCell { width:18px; height:34px; }
+    .outputLetter { font-size:12px; }
+    .outputNumber { font-size:10px; }
+    :root{ --gap: 34px; }
+  }
 </style>
 </head>
 <body>
+  <div class="container">
+    <h2>Alphabet Puzzle</h2>
+    <p>Enter numbers for letters in the top tables. The bottom two rows show the puzzle numbers; letters appear above numbers when a top-table letter is assigned that number.</p>
 
-<h2>Alphabet Puzzle</h2>
-<p>Enter numbers in the top table. Letters will appear above the numbers in the bottom line.</p>
+    <div class="top-tables">
+      <div class="table-wrap">
+        <table id="tableLeft">
+          <thead><tr id="headerRow1"></tr></thead>
+          <tbody><tr id="inputRow1"></tr></tbody>
+        </table>
+      </div>
 
-<div class="half-table">
-<table id="puzzleTableTop1">
-  <thead><tr id="headerRow1"></tr></thead>
-  <tbody><tr id="inputRow1"></tr></tbody>
-</table>
-</div>
-<div class="half-table">
-<table id="puzzleTableTop2">
-  <thead><tr id="headerRow2"></tr></thead>
-  <tbody><tr id="inputRow2"></tr></tbody>
-</table>
-</div>
+      <div class="table-wrap">
+        <table id="tableRight">
+          <thead><tr id="headerRow2"></tr></thead>
+          <tbody><tr id="inputRow2"></tr></tbody>
+        </table>
+      </div>
+    </div>
 
-<center>
-<div id="outputContainer">
-  <div class="outputRow" id="outputLine1"></div>
-  <div class="outputRow" id="outputLine2"></div>
-</div>
-</center>
+    <div id="outputContainer">
+      <div id="outputLine1" class="outputRow"></div>
+      <div id="outputLine2" class="outputRow"></div>
+    </div>
+
+  </div>
 
 <script>
-// Pre-filled top table numbers
+/* ===== Configuration ===== */
 const prefilledTop = { "C":2, "H":23, "K":15, "R":24, "Y":25, "Z":1 };
-const reservedNumbers = [1, 2, 23, 15, 24, 25]; // numbers not allowed for input
+const reservedNumbers = [1,2,23,15,24,25]; // cannot be entered by participant
 
-// Top table letters
 const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
-
-// Bottom sequence: numbers (letters appear when matched)
+// your bottom sequence (numbers or null for spaces). This sequence length determines splitting.
 const bottomSequence = [4,6,null,20,null,2,25,4,6,24,null,23,6,24,13,null,15,6,6,7,null,25,13,5,24,null,24,3,14,15,14,null,20,26,null,1,6,24,13];
 
-// Split alphabet for two tables
-const firstHalf = alphabet.slice(0,13);
-const secondHalf = alphabet.slice(13);
+/* ===== Build top tables as two halves A-M and N-Z ===== */
+const leftLetters = alphabet.slice(0,13);   // A - M
+const rightLetters = alphabet.slice(13);    // N - Z
 
-// Split bottom sequence for two lines
-const mid = Math.ceil(bottomSequence.length / 2);
-const bottomSeq1 = bottomSequence.slice(0, mid);
-const bottomSeq2 = bottomSequence.slice(mid);
+function buildTable(letters, headerRowEl, inputRowEl){
+  letters.forEach(letter => {
+    const th = document.createElement('th'); th.textContent = letter;
+    headerRowEl.appendChild(th);
 
-// Function to create table
-function buildTable(letters, headerRow, inputRow) {
-  letters.forEach(letter=>{
-    const th = document.createElement("th");
-    th.textContent = letter;
-    headerRow.appendChild(th);
-
-    const td = document.createElement("td");
+    const td = document.createElement('td');
     if(prefilledTop[letter] !== undefined){
       td.textContent = prefilledTop[letter];
-      td.classList.add("pre-filled");
+      td.classList.add('pre-filled');
     } else {
-      const input = document.createElement("input");
-      input.type = "number";
-      input.min="1"; input.max="26";
+      const input = document.createElement('input');
+      input.type = 'number'; input.min = 1; input.max = 26;
       input.id = `cell_${letter}`;
-      input.addEventListener("change", (e)=>{
+      input.addEventListener('change', e => {
         const val = parseInt(e.target.value);
-        if(reservedNumbers.includes(val)){
+        // if invalid or reserved, clear and warn
+        if(!isNaN(val) && reservedNumbers.includes(val)){
+          // simple inline feedback — clear and brief alert
           alert(`Number ${val} is reserved and cannot be used.`);
-          e.target.value = "";
+          e.target.value = '';
         }
-        updateOutput();
+        updateOutput(); // refresh bottom rows
       });
       td.appendChild(input);
     }
-    inputRow.appendChild(td);
+    inputRowEl.appendChild(td);
   });
 }
 
-// Build both top tables
-buildTable(firstHalf, document.getElementById("headerRow1"), document.getElementById("inputRow1"));
-buildTable(secondHalf, document.getElementById("headerRow2"), document.getElementById("inputRow2"));
+buildTable(leftLetters, document.getElementById('headerRow1'), document.getElementById('inputRow1'));
+buildTable(rightLetters, document.getElementById('headerRow2'), document.getElementById('inputRow2'));
 
-// Map number -> letter based on current top table
-function getLetterFromNumber(num){
-  for(const letter of alphabet){
-    const val = prefilledTop[letter] ?? parseInt(document.getElementById(`cell_${letter}`)?.value);
-    if(val === num) return letter;
+/* ===== Split bottom sequence into two roughly equal rows ===== */
+const mid = Math.ceil(bottomSequence.length / 2);
+const seq1 = bottomSequence.slice(0, mid);
+const seq2 = bottomSequence.slice(mid);
+
+/* ===== Helper: find letter assigned to a given number (prefer prefilled then user inputs) ===== */
+function findLetterForNumber(num){
+  if(num === null) return ' ';
+  // check prefilled first
+  for(const [ltr, val] of Object.entries(prefilledTop)){
+    if(val === num) return ltr;
   }
-  return "_";
+  // check user inputs
+  for(const ltr of alphabet){
+    const el = document.getElementById(`cell_${ltr}`);
+    if(el){
+      const v = parseInt(el.value);
+      if(!isNaN(v) && v === num) return ltr;
+    }
+  }
+  return '_'; // not yet assigned
 }
 
-// Build bottom line with numbers visible
-function buildOutputLine(seq, outputDiv){
-  outputDiv.innerHTML = "";
-  seq.forEach(n=>{
-    const cell = document.createElement("span");
-    cell.classList.add("outputCell");
+/* ===== Build an output row (sequence -> DOM) ===== */
+function buildOutputRow(seq, outputEl){
+  outputEl.innerHTML = '';
+  seq.forEach(n => {
+    const span = document.createElement('span');
+    span.className = 'outputCell';
 
-    // Letter above number
-    const letterSpan = document.createElement("span");
-    letterSpan.classList.add("outputLetter");
-    if(n===null) letterSpan.textContent = " ";
-    else if(typeof n === "number") letterSpan.textContent = getLetterFromNumber(n);
-    else letterSpan.textContent = n; // for letters already given
-    cell.appendChild(letterSpan);
+    const letter = document.createElement('span');
+    letter.className = 'outputLetter';
+    if(n === null) letter.textContent = ' ';
+    else if(typeof n === 'number') letter.textContent = findLetterForNumber(n);
+    else letter.textContent = n;
+    span.appendChild(letter);
 
-    // Number below
-    const numberSpan = document.createElement("span");
-    numberSpan.classList.add("outputNumber");
-    if(n===null) numberSpan.textContent = " ";
-    else numberSpan.textContent = n;
-    cell.appendChild(numberSpan);
+    const number = document.createElement('span');
+    number.className = 'outputNumber';
+    number.textContent = (n === null) ? ' ' : n;
+    span.appendChild(number);
 
-    outputDiv.appendChild(cell);
+    outputEl.appendChild(span);
   });
 }
 
+/* ===== update both rows ===== */
 function updateOutput(){
-  buildOutputLine(bottomSeq1, document.getElementById("outputLine1"));
-  buildOutputLine(bottomSeq2, document.getElementById("outputLine2"));
+  buildOutputRow(seq1, document.getElementById('outputLine1'));
+  buildOutputRow(seq2, document.getElementById('outputLine2'));
 }
 
-// Initialize bottom line
-updateOutput();
-
-// Save inputs
-const saveBtn = document.getElementById("saveBtn");
-const message = document.getElementById("saveMessage");
-saveBtn.addEventListener("click",()=>{
-  alphabet.forEach(letter=>{
-    const input = document.getElementById(`cell_${letter}`);
-    if(input) localStorage.setItem(`cell_${letter}`, input.value);
-  });
-  message.textContent = "✅ Saved locally!";
-  setTimeout(()=>message.textContent="",2000);
-});
-
-// Load saved values
-/*
-window.addEventListener("load",()=>{
-  alphabet.forEach(letter=>{
-    const input = document.getElementById(`cell_${letter}`);
-    const val = localStorage.getItem(`cell_${letter}`);
-    if(val) input.value = val;
-  });
-  updateOutput();
-});*/
 
 window.addEventListener("load",()=>{
   updateOutput();
 });
 
 </script>
-
 </body>
 </html>
-
