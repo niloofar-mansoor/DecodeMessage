@@ -83,7 +83,7 @@ function buildTable(letters, headerRow, inputRow) {
       input.type = "number";
       input.min="1"; input.max="26";
       input.id = `cell_${letter}`;
-      input.addEventListener("input", (e)=>{
+      input.addEventListener("change", (e)=>{
         const val = parseInt(e.target.value);
         if(reservedNumbers.includes(val)){
           alert(`Number ${val} is reserved and cannot be used.`);
@@ -175,3 +175,4 @@ window.addEventListener("load",()=>{
 
 </body>
 </html>
+
